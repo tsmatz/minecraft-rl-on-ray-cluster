@@ -8,18 +8,19 @@ This tutorial shows you how to configure and run distributed reinforcement learn
 
 ## Prerequisites
 
-This example is the cluster version of [this repo](https://github.com/tsmatz/malmo-maze-sample), in which the agent will learn to solve the maze using frame pixels.
+This example is the cluster version of [this repo](https://github.com/tsmatz/malmo-maze-sample), in which the agent will learn to solve the maze in Minecraft using frame pixels.
 
-In this example, I assume Ubuntu 18.04. This example requires much resources for running workloads and you should then use powerful machines. (Here I used Standard D3 v2 (4 vcpus, 14 GB memory) VM on Microsoft Azure.)
+In this example, I assume Ubuntu 18.04. This example will require much resources for running workloads and I then recommend that you should use powerful machines. (Here I used Standard D3 v2 (4 vcpus, 14 GB memory) VM on Microsoft Azure.)
 
 Before running this example, please install and configure the required software as follows.
 
 ```
+# Upgrade PIP
 sudo apt-get update
 sudo apt-get -y install python3-pip
 sudo -H pip3 install --upgrade pip
 
-# Install Java 8 for running Minecraft client
+# Install Java 8 for building and running Minecraft client
 sudo apt-get install -y openjdk-8-jdk
 echo -e "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64" >> ~/.bashrc
 source ~/.bashrc
@@ -28,7 +29,7 @@ source ~/.bashrc
 pip3 install gym lxml numpy pillow
 pip3 install tensorflow==2.4.1 ray[default]==1.6.0 ray[rllib]==1.6.0 ray[tune]==1.6.0 attrs==19.1.0 pandas
 
-# Install for virtual monitor
+# Install virtual monitor (xvfb) and desktop components
 sudo apt-get install -y xvfb
 sudo apt-get install -y lxde
 ### Following is only needed for using real monitor
@@ -51,9 +52,10 @@ pip3 install Malmo_Maze_Sample/
 
 In this section, we will test script on a single machine.
 
-All workers on cluster (multiple machines) will run the training without real monitors. Minecraft UI should then be redirected to virtual monitor, and I have used ```xvfb``` (X Virtual Frame Buffer) in this example for headless Minecraft.
+All workers on cluster (multiple machines) will run the training without real monitors. Minecraft UI should then be redirected to virtual monitor, and I have used ```xvfb``` (X Virtual Frame Buffer) in this example for running headless Minecraft.
 
-When you initialize custom Gym environment, this headless Minecraft will automatically start. (See ```Malmo_Maze_Sample/custom_malmo_env/env/maze_env.py```.)
+When you initialize custom Gym environment in Python script, this headless Minecraft will automatically start. (See ```Malmo_Maze_Sample/custom_malmo_env/env/maze_env.py```.)<br>
+The training will then run on this hidden virtual monitor.
 
 ```
 # Run training on single machine
@@ -65,50 +67,53 @@ python3 train_single.py
 
 > Note : For the first time to run, it will take a long time, because Malmo will build (compile) modded Minecraft.
 
+The output (statistics in each training iterations) will be shown in the console, and the results will be logged in ```./logs``` folder.
+
 ## Run Training on Manually Configured Cluster (Multiple Machines)
 
 In this section, we will configure Ray cluster (multiple machines) manually, and run script on this cluster.
 
-First, please prepare multiple machines - 1 head node and multiple worker nodes. All machines should be connected (by port 6379) each other on network.<br>
-In my case, I have provisioned multiple virtual machines on the same resource group in Microsoft Azure. (Then all machines can be connected each other with internal addresses.)
+First, please prepare multiple machines - 1 head node and multiple worker nodes. All machines should be connected (by port 6379) each other on the same network.<br>
+In my case, I have created multiple virtual machines on the same resource group in Microsoft Azure. (Then all machines can be connected each other on the same virtual network with internal addresses.)
 
-Next, please setup (configure) multiple machines using above "Prerequisites" script.
+Next, please configure these multiple machines using above "Prerequisites" script.
 
-Since we use IMPALA (which is optimized for distributed RL) for algorithms on training in cluster, please install the following additional package in all machines.
+Since we use IMPALA (which is optimized for distributed RL) for algorithms on training in distributed cluster, please install the following additional package in all machines.
 
 ```
 pip3 install ale-py==0.7
 ```
 
-Now let's start Ray runtime (master) on head node.<br>
-When you run this command, ray commands on workers will be shown in console and please copy this text.
+Now let's start Ray runtime (master) on head node. (Login to head node and run the following command)<br>
+When you run this command, ray command for workers (which will be needed in the following step) is shown in console and please copy this text.
 
 ```
 ray start --head --port=6379
 ```
 
-On each worker nodes (multiple machines), run the copied command and connect to the head node.<br>
-Please change the following values of ```--address``` and ```--redis-password``` to meet your copied text.
+On each worker nodes (multiple machines), run the copied command (see above) to connect into the head node.<br>
+Please change the following values of ```--address``` and ```--redis-password``` options to meet your copied text.
 
 ```
+# Change values to meet your environment (See above)
 ray start --address='10.6.0.5:6379' --redis-password='5241590000000000'
 ```
 
-See Ray dashboard (http://127.0.0.1:8265) on head node, and ensure that all worker machines are correctly connected.
+See Ray dashboard (http://127.0.0.1:8265) running on head node, and ensure that all worker machines are correctly connected to this cluster.
 
 Login to head node and run ```train_cluster.py``` on head node.<br>
-The following command will run 2 workers.
+The following command will run 2 workers. (Please change this value to meet the number of workers. See the following note for settings.)
 
 ```
 cd minecraft-rl-on-ray-cluster
 python3 train_cluster.py --num_workers 2 --num_cpus_per_worker 3
 ```
 
-> Note : This script cannot run mutiple worker process on a single machine (because of port conflicts). Set ```num_cpus_per_worker``` to run exact 1 worker on a single node. (In this example, I have used virtual machines with each 4 cores.)
+> Note (Important) : Because of Minecraft port conflicts, mutiple worker process cannot run on a single machine. Set ```num_cpus_per_worker``` to run exact 1 worker process on a single worker node. (In this example, I have used virtual machines with each 4 cores.)
 
 The output (statistics in each training iterations) will be shown in the console, and the results will be logged in ```./logs``` folder.
 
-When you have finished training, please run the following command on each machines (head node and workers) to stop Ray runtime.
+When you have finished training, please run the following command on each machines (both head node and workers) to stop Ray runtime.
 
 ````
 ray stop
