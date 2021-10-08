@@ -51,6 +51,9 @@ cd minecraft-rl-on-ray-cluster
 pip3 install Malmo_Maze_Sample/
 ```
 
+> Note : To uninstall custom Gym env (custom package), run as follows.<br>
+> ```pip3 uninstall malmo-maze-env```
+
 ## Run Training on Single Machine (Test)
 
 In this section, we will test script on a single machine.
