@@ -10,6 +10,7 @@ RUN apt-get update && \
 RUN apt-get install -y python3.6 && \
     apt-get install -y python3-pip && \
     pip3 install --upgrade pip
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
 
 # Install Java 8 (JDK)
 RUN apt-get install -y openjdk-8-jdk
@@ -37,5 +38,10 @@ WORKDIR /
 RUN git clone https://github.com/tsmatz/minecraft-rl-on-ray-cluster
 RUN cd minecraft-rl-on-ray-cluster && \
     pip3 install Malmo_Maze_Sample/
+
+# These are needed for Ray autoscaler for Azure
+RUN pip3 install azure-cli-core==2.10.0 && \
+    pip3 install azure==4.0.0 && \
+    pip3 install knack
 
 EXPOSE 6379 8265

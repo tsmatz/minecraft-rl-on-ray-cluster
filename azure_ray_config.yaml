@@ -1,0 +1,87 @@
+cluster_name: default
+
+max_workers: 2
+
+upscaling_speed: 1.0
+
+docker:
+    image: "tsmatz/malmo-maze:0.36.0"
+    container_name: "ray_container"
+    pull_before_run: True
+    run_options:
+        - --ulimit nofile=65536:65536
+
+idle_timeout_minutes: 5
+
+provider:
+    type: azure
+    location: eastus
+    resource_group: ray-cluster-test01
+
+auth:
+    ssh_user: ubuntu
+    ssh_private_key: ~/.ssh/id_rsa
+    # should match what is specified in "file_mounts" section
+    ssh_public_key: ~/.ssh/id_rsa.pub
+
+available_node_types:
+    ray.head.default:
+        resources: {"CPU": 4}
+        node_config:
+            azure_arm_parameters:
+                vmSize: Standard_D3_v2
+                imagePublisher: microsoft-dsvm
+                imageOffer: ubuntu-1804
+                imageSku: "1804"
+                imageVersion: latest
+
+    ray.worker.default:
+        min_workers: 0
+        max_workers: 2
+        resources: {"CPU": 4}
+        node_config:
+            azure_arm_parameters:
+                vmSize: Standard_D3_v2
+                imagePublisher: microsoft-dsvm
+                imageOffer: ubuntu-1804
+                imageSku: "1804"
+                imageVersion: latest
+
+head_node_type: ray.head.default
+
+file_mounts: {
+     "~/.ssh/id_rsa.pub": "~/.ssh/id_rsa.pub"
+}
+
+cluster_synced_files: []
+
+file_mounts_sync_continuously: False
+
+rsync_exclude:
+    - "**/.git"
+    - "**/.git/**"
+
+rsync_filter:
+    - ".gitignore"
+
+initialization_commands:
+    - sudo usermod -aG docker $USER || true
+    - sleep 10
+    - touch ~/.sudo_as_admin_successful
+
+setup_commands: []
+
+head_setup_commands: []
+
+worker_setup_commands: []
+
+head_start_ray_commands:
+    - ray stop
+    - ray start --head --port=6379 --object-manager-port=8076 --autoscaling-config=~/ray_bootstrap_config.yaml
+
+worker_start_ray_commands:
+    - ray stop
+    - ray start --address=$RAY_HEAD_IP:6379 --object-manager-port=8076
+
+head_node: {}
+worker_nodes: {}

@@ -2,9 +2,12 @@
 
 This tutorial shows you how to configure and run distributed reinforcement learning with Minecraft RL framework, Project Malmo.
 
+<ins>Table of Contents</ins>
+
 - Prerequisites
 - Run Training on Single Machine (Test)
 - Run Training on Manually Configured Cluster (Multiple Machines)
+- Run Training on Ray Autoscaler for Azure
 
 ## Prerequisites
 
@@ -118,3 +121,69 @@ When you have finished training, please run the following command on each machin
 ````
 ray stop
 ````
+
+## Run Training on Ray Autoscaler for Azure
+
+In this section, we will run Ray cluster with Azure provider for Ray autoscaler.
+
+First, please prepare a client machine (assuming Ubuntu 18.04) and setup the requisites component as follows.
+
+```
+sudo apt-get update
+sudo apt-get install -y  python3-pip
+sudo -H pip3 install --upgrade pip
+
+# Install Ray
+pip3 install gym lxml numpy pillow
+pip3 install ray[default]==1.6.0 attrs==19.1.0
+
+# Install Azure CLI
+Azure CLI のインストール
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+# Install Azure libraries for Python
+pip3 install azure-cli-core==2.10.0
+pip3 install azure==4.0.0
+pip3 install knack
+```
+
+Generate a new ssh key pair, which will be used to authenticate Ray nodes.
+
+```
+ssh-keygen -t rsa -b 4096
+```
+
+Login to Azure subscription with Azure CLI.
+
+```
+az login
+az account set -s {your_subscription_id}
+```
+
+Now let's create Ray cluster with YAML configuration.<br>
+As you can see in this configuration (```azure_ray_config.yaml```), custom docker image ```tsmatz/malmo-maze:0.36.0``` is used as both head and worker containers. You can refer this dockerfile in ```docker``` folder in this repository.
+
+```
+ray up ./azure_ray_config.yaml
+```
+
+Now you can submit training on this cluster.
+
+```
+ray submit ./azure_ray_config.yaml train_cluster.py
+```
+
+You can also connect to head role (container) in this cluster and run commands manually.
+
+```
+ray attach ./azure_ray_config.yaml
+
+$ python3 -c 'import ray; ray.init(address="auto")'
+$ exit
+```
+
+When you have finished training, you can tear down the cluster.
+
+```
+ray down ./azure_ray_config.yaml
+```
