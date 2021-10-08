@@ -138,7 +138,6 @@ pip3 install gym lxml numpy pillow
 pip3 install ray[default]==1.6.0 attrs==19.1.0
 
 # Install Azure CLI
-Azure CLI のインストール
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
 # Install Azure libraries for Python
