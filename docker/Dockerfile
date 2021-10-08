@@ -4,7 +4,7 @@ WORKDIR /
 
 # Prerequisites settings
 RUN apt-get update && \
-    apt-get install -y git
+    apt-get install -y apt-utils git rsync
 
 # Install Python
 RUN apt-get install -y python3.6 && \
