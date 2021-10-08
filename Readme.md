@@ -87,7 +87,7 @@ Since we use IMPALA (which is optimized for distributed RL) for algorithms on tr
 pip3 install ale-py==0.7
 ```
 
-Now let's start Ray runtime (master) on head node. (Login to head node and run the following command)<br>
+Now let's start Ray runtime (master) on head node. Login to head node and run the following command.<br>
 When you run this command, ray command for workers (which will be needed in the following step) is shown in console and please copy this text.
 
 ```
@@ -126,7 +126,8 @@ ray stop
 
 In this section, we will run Ray cluster with Azure provider for Ray autoscaler.
 
-First, please prepare a client machine (assuming Ubuntu 18.04) and setup the requisites component as follows.
+First, please prepare a client machine (assuming Ubuntu 18.04) and setup the requisites component as follows.<br>
+The all following tasks will be done in this client.
 
 ```
 sudo apt-get update
@@ -159,20 +160,20 @@ az login
 az account set -s {your_subscription_id}
 ```
 
-Now let's create Ray cluster with YAML configuration.<br>
-As you can see in this configuration (```azure_ray_config.yaml```), custom docker image ```tsmatz/malmo-maze:0.36.0``` is used as both head and worker containers. You can refer this dockerfile in ```docker``` folder in this repository.
+Now let's create Ray cluster with YAML configuration (```azure_ray_config.yaml```).<br>
+As you can see in this configuration (```azure_ray_config.yaml```), custom docker image ```tsmatz/malmo-maze:0.36.0``` is used in both head and worker containers. You can refer this dockerfile in ```docker``` folder in this repository.
 
 ```
 ray up ./azure_ray_config.yaml
 ```
 
-Now you can submit training on this cluster.
+By running the following code, now you can submit training on this cluster.
 
 ```
 ray submit ./azure_ray_config.yaml train_cluster.py
 ```
 
-You can also connect to head role (container) in this cluster and run commands manually.
+You can also connect to the driver (container) on head node and run commands manually as follows.
 
 ```
 ray attach ./azure_ray_config.yaml
@@ -181,7 +182,7 @@ $ python3 -c 'import ray; ray.init(address="auto")'
 $ exit
 ```
 
-When you have finished training, you can tear down the cluster.
+When you have finished training, you can tear down the cluster. (All Ray nodes will be removed.)
 
 ```
 ray down ./azure_ray_config.yaml
