@@ -65,7 +65,7 @@ pip3 install Malmo_Maze_Sample/
 In this section, we will test script on a single machine.
 
 All workers on cluster (multiple machines) will run the training without real monitors. Minecraft UI should then be redirected to virtual monitor, and ```xvfb``` (X Virtual Frame Buffer) can be used for launching headless Minecraft.<br>
-With this custom Gym environment, the agent will run on Minecraft in this hidden virtual monitor (```xvfb```).
+With this installed custom Gym environment, the agent will run on Minecraft in this hidden virtual monitor (```xvfb```).
 
 ```
 # Run training on single machine
@@ -75,7 +75,7 @@ python3 train_single.py
 > Note : When you run on GPU, please specify ```--num_gpus``` option.<br>
 > ```python3 train_single.py --num_gpus 1```
 
-When this custom Gym environment is initialized in this script, headless Minecraft instance will automatically start. (See ```Malmo_Maze_Sample/custom_malmo_env/env/maze_env.py```.)
+When this custom Gym environment is initialized in this script (```train_single.py```), headless Minecraft instance will automatically start. (See ```Malmo_Maze_Sample/custom_malmo_env/env/maze_env.py```.)
 
 > Note : For the first time to run, it will take a long time, because Malmo will build (compile) the modded Minecraft.
 
@@ -83,27 +83,27 @@ The output (statistics in each training iterations) will be shown in the console
 
 ## Run Training on Manually Configured Cluster (Multiple Machines)
 
-In this section, we will configure Ray cluster (multiple machines) manually, and run script on this cluster.
+In this section, we will configure Ray cluster (multiple machines) manually and run script on this cluster.
 
 First, please prepare multiple machines - 1 head node and multiple worker nodes. All machines should be connected (by port 6379) each other on the same network.<br>
 In my case, I have created multiple virtual machines on the same resource group in Microsoft Azure. (Then all machines can be connected each other on the same virtual network with internal addresses.)
 
-Next, please configure these multiple machines using above "Prerequisites" script.
+Next, please setup the required software on these multiple machines using above "Prerequisites" script. (The custom Gym env should also be installed.)
 
-Since we use IMPALA (which is optimized for distributed RL) for algorithms on training in distributed cluster, please install the following additional package in all machines.
+Since we use IMPALA (which is optimized for distributed RL) in RLlib built-in algorithms in cluster, please install the following additional package in all machines.
 
 ```
 pip3 install ale-py==0.7
 ```
 
-Now let's start Ray runtime (master) on head node. Login to head node and run the following command.<br>
-When you run this command, ray command for workers (which will be needed in the following step) is shown in console and please copy this text.
+Now login to head node, and run the following command to start Ray head role (driver process) on head node.<br>
+When you run this command, ray command for other workers (which will be needed in the following step) is shown in console and please copy this text.
 
 ```
 ray start --head --port=6379
 ```
 
-On each worker nodes (multiple machines), run the copied command (see above) to connect into the head node.<br>
+On each worker nodes (multiple machines), run the copied command (see above) to connect into your head node.<br>
 Please change the following values of ```--address``` and ```--redis-password``` options to meet your copied text.
 
 ```
@@ -111,21 +111,21 @@ Please change the following values of ```--address``` and ```--redis-password```
 ray start --address='10.6.0.5:6379' --redis-password='5241590000000000'
 ```
 
-See Ray dashboard (http://127.0.0.1:8265) running on head node, and ensure that all worker machines are correctly connected to this cluster.
+See Ray dashboard (http://127.0.0.1:8265) running on head node, and ensure that all worker machines have correctly connected to this cluster.
 
 Login to head node and run ```train_cluster.py``` on head node.<br>
-The following command will run 2 workers. (Please change this value to meet the number of workers. See the following note for settings.)
+The following command will run 2 training workers. (Please change this value to meet the number of training workers. See the following note for settings.)
 
 ```
 cd minecraft-rl-on-ray-cluster
 python3 train_cluster.py --num_workers 2 --num_cpus_per_worker 3
 ```
 
-> Note (Important) : Because of Minecraft port conflicts, mutiple worker process cannot run on a single machine. Set ```num_cpus_per_worker``` to run exact 1 worker process on a single worker node. (In this example, I have used virtual machines with each 4 cores.)
+> Note (Important) : Because of Minecraft port conflicts, mutiple worker process cannot run on a single machine. Set ```num_cpus_per_worker``` to run exact 1 worker on a single worker node. (In this example, I have used virtual machines with 4 cores.)
 
-The output (statistics in each training iterations) will be shown in the console, and the results will be logged in ```./logs``` folder.
+The output (statistics in each training iterations) will be shown in the console, and the results (checkpoint files with trained parameters) will be logged in ```./logs``` folder.
 
-When you have finished training, please run the following command on each machines (both head node and workers) to stop Ray runtime.
+When you have finished training, please run the following command on each machines (both head node and workers) to stop Ray runtime process.
 
 ````
 ray stop
@@ -133,10 +133,9 @@ ray stop
 
 ## Run Training on Ray Autoscaler for Azure
 
-In this section, we will run Ray cluster with Azure provider for Ray autoscaler.
+In this section, we will run Ray cluster with Azure provider of Ray autoscaler.
 
-First, please prepare a client machine (assuming Ubuntu 18.04) and setup the requisites component as follows.<br>
-The all following tasks will be done in this client.
+First, please prepare a client machine (also assuming Ubuntu 18.04) and setup the required components in this client as follows.
 
 ```
 sudo apt-get update
@@ -156,27 +155,33 @@ pip3 install azure==4.0.0
 pip3 install knack
 ```
 
-Generate a new ssh key pair, which will be used to authenticate Ray nodes.
+All the following tasks will be operated in this working client.<br>
+First, generate a new ssh key pair, which will be used to authenticate Ray nodes.
 
 ```
 ssh-keygen -t rsa -b 4096
 ```
 
-Login to Azure subscription with Azure CLI.
+Next, login to Azure subscription with Azure CLI.
 
 ```
 az login
 az account set -s {your_subscription_id}
 ```
 
-Now let's create Ray cluster with YAML configuration (```azure_ray_config.yaml```).<br>
-As you can see in this configuration (```azure_ray_config.yaml```), custom docker image ```tsmatz/malmo-maze:0.36.0``` is used in both head and worker containers. You can refer this dockerfile in ```docker``` folder in this repository.
+Now create Ray cluster with YAML configuration (```azure_ray_config.yaml```) in this repository. (See below.)<br>
+All Azure resources in this cluster are generated in resource group ```ray-cluster-test01```.
+
+As you can see in this configuration (```azure_ray_config.yaml```), custom docker image ```tsmatz/malmo-maze:0.36.0``` is used in both head and worker containers. All the required components (including custom Gym env) are already installed in this docker image. (Dockerfile for this image is ```docker/Dockerfile``` in this repository.)
 
 ```
 ray up ./azure_ray_config.yaml
 ```
 
-By running the following code, now you can submit training on this cluster.
+> Note : Ray config and its result will be cached in the client. When you want to repeatedly run this command ignoring this cache, please run with ```--no-config-cache``` option as follows.<br>
+> ```ray up ./azure_ray_config.yaml --no-config-cache```
+
+By running the following Ray CLI command, you can submit distributed training on this cluster.
 
 ```
 ray submit ./azure_ray_config.yaml train_cluster.py
@@ -191,7 +196,7 @@ $ python3 -c 'import ray; ray.init(address="auto")'
 $ exit
 ```
 
-When you have finished training, you can tear down the cluster. (All Ray nodes will be removed.)
+When you have finished training, you can tear down the cluster as follows. (All Ray nodes will be deleted.)
 
 ```
 ray down ./azure_ray_config.yaml
