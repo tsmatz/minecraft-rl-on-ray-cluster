@@ -10,6 +10,8 @@ This example is the cluster version of [this repo](https://github.com/tsmatz/mal
 - Run Training on Manually Configured Cluster (Multiple Machines)
 - Run Training on Ray Autoscaler for Azure
 
+> Note : See [my post](https://tsmatz.wordpress.com/2021/10/08/rllib-reinforcement-learning-multiple-machines-ray-cluster/) for the background architecture.
+
 ## Prerequisites
 
 In this example, I assume Ubuntu 18.04.<br>
@@ -44,7 +46,11 @@ pip3 install --index-url https://test.pypi.org/simple/ malmo==0.36.0
 python3 -c "import malmo.minecraftbootstrap; malmo.minecraftbootstrap.download();"
 echo -e "export MALMO_XSD_PATH=$HOME/MalmoPlatform/Schemas" >> ~/.bashrc
 source ~/.bashrc
+```
 
+Please install custom Gym environment in this repository.
+
+```
 # Clone this repo and install custom Gym env
 git clone https://github.com/tsmatz/minecraft-rl-on-ray-cluster
 cd minecraft-rl-on-ray-cluster
@@ -58,10 +64,8 @@ pip3 install Malmo_Maze_Sample/
 
 In this section, we will test script on a single machine.
 
-All workers on cluster (multiple machines) will run the training without real monitors. Minecraft UI should then be redirected to virtual monitor, and I have used ```xvfb``` (X Virtual Frame Buffer) in this example for running headless Minecraft.
-
-When you initialize custom Gym environment in Python script, this headless Minecraft will automatically start. (See ```Malmo_Maze_Sample/custom_malmo_env/env/maze_env.py```.)<br>
-The training will then run on this hidden virtual monitor.
+All workers on cluster (multiple machines) will run the training without real monitors. Minecraft UI should then be redirected to virtual monitor, and ```xvfb``` (X Virtual Frame Buffer) can be used for launching headless Minecraft.<br>
+With this custom Gym environment, the agent will run on Minecraft in this hidden virtual monitor (```xvfb```).
 
 ```
 # Run training on single machine
@@ -71,9 +75,11 @@ python3 train_single.py
 > Note : When you run on GPU, please specify ```--num_gpus``` option.<br>
 > ```python3 train_single.py --num_gpus 1```
 
-> Note : For the first time to run, it will take a long time, because Malmo will build (compile) modded Minecraft.
+When this custom Gym environment is initialized in this script, headless Minecraft instance will automatically start. (See ```Malmo_Maze_Sample/custom_malmo_env/env/maze_env.py```.)
 
-The output (statistics in each training iterations) will be shown in the console, and the results will be logged in ```./logs``` folder.
+> Note : For the first time to run, it will take a long time, because Malmo will build (compile) the modded Minecraft.
+
+The output (statistics in each training iterations) will be shown in the console, and the results (checkpoint files with trained parameters) will be logged in ```./logs``` folder.
 
 ## Run Training on Manually Configured Cluster (Multiple Machines)
 
