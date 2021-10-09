@@ -1,7 +1,7 @@
 # Minecraft Reinforcement Learning on Ray Cluster (Distributed RL)
 
 This tutorial shows you how to configure and run distributed reinforcement learning with Minecraft RL framework, Project Malmo.<br>
-This example is the cluster version of [this repo](https://github.com/tsmatz/malmo-maze-sample), in which the agent will learn to solve the maze in Minecraft using frame pixels.
+This example is the cluster version of [Malmo maze sample](https://github.com/tsmatz/malmo-maze-sample), in which the agent will learn to solve the maze in Minecraft using frame pixels.
 
 <ins>Table of Contents</ins>
 
