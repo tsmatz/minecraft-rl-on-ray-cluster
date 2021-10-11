@@ -1,5 +1,9 @@
 FROM ubuntu:18.04
 
+#
+# Note : This image is not configured for running on GPU
+#
+
 WORKDIR /
 
 # Prerequisites settings

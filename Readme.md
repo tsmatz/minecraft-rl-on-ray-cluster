@@ -17,6 +17,8 @@ This example is the cluster version of [Malmo maze sample](https://github.com/ts
 In this example, I assume Ubuntu 18.04.<br>
 This example will require much resources for running workloads and I then recommend that you should use powerful machines. (Here I used Standard D3 v2 (4 vcpus, 14 GB memory) VM on Microsoft Azure.)
 
+> Note : This example is for getting started, but it's better to run on GPU in practical training. (Use ```tensorflow-gpu``` and change Dokerfile for running on GPU.)
+
 Before running this example, please install and configure the required software as follows.
 
 ```
@@ -31,6 +33,7 @@ echo -e "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64" >> ~/.bashrc
 source ~/.bashrc
 
 # Install Ray with Tensorflow 2.x
+# (Install tensorflow-gpu when you run on GPU)
 pip3 install gym lxml numpy pillow
 pip3 install tensorflow==2.4.1 ray[default]==1.6.0 ray[rllib]==1.6.0 ray[tune]==1.6.0 attrs==19.1.0 pandas
 
@@ -172,7 +175,7 @@ az account set -s {your_subscription_id}
 Now create Ray cluster with YAML configuration (```azure_ray_config.yaml```) in this repository. (See below.)<br>
 All Azure resources in this cluster are generated in resource group ```ray-cluster-test01```.
 
-As you can see in this configuration (```azure_ray_config.yaml```), custom docker image ```tsmatz/malmo-maze:0.36.0``` is used in both head and worker containers. All the required components (including custom Gym env) are already installed in this docker image. (Dockerfile for this image is ```docker/Dockerfile``` in this repository.)
+As you can see in this configuration (```azure_ray_config.yaml```), custom docker image ```tsmatz/malmo-maze:0.36.0``` is used in both head and worker containers. All the required components (including custom Gym env) are already installed in this docker image. (Dockerfile for this image is ```docker/Dockerfile``` in this repository. I note that this image is not for running on GPU.)
 
 ```
 ray up ./azure_ray_config.yaml
