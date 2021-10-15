@@ -107,7 +107,7 @@ ray start --head --port=6379
 ```
 
 On each worker nodes (multiple machines), run the copied command (see above) to connect into your head node.<br>
-Please change the following values of ```--address``` and ```--redis-password``` options to meet your copied text.
+Please change the following value of ```--address``` option to meet your copied text.
 
 ```
 # Change values to meet your environment (See above)
