@@ -59,7 +59,8 @@ class MalmoMazeEnv(gym.Env):
         dev_null = open(os.devnull, "w")
         self.proc = subprocess.Popen(
             ["bash", launch_shell_file, str(self.malmo_port)],
-            stdout=dev_null)
+            stdout=dev_null,
+            preexec_fn=os.setsid)
         ### # For Debug : Verbose Output
         ### self.proc = subprocess.Popen(
         ###     ["xvfb-run", "-a", "-e", "/dev/stdout", "-s", "-screen 0 640x480x16", "./launchClient.sh", "-port", str(self.malmo_port)])
