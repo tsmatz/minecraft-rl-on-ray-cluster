@@ -189,7 +189,7 @@ ray up ./azure_ray_config.yaml
 By running the following Ray CLI command, you can submit distributed training on this cluster.
 
 ```
-ray submit ./azure_ray_config.yaml train_cluster.py
+ray submit ./azure_ray_config.yaml train_cluster.py --num_cpus_per_worker 3
 ```
 
 You can also connect to the driver (container) on head node and run commands manually as follows.
