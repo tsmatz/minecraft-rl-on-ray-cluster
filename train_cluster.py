@@ -38,6 +38,7 @@ if __name__ == '__main__':
             "num_gpus": args.num_gpus,
             "num_cpus_per_worker": args.num_cpus_per_worker,
             "explore": True,
+            "learner_queue_timeout": 600,
             "exploration_config": {
                 "type": "EpsilonGreedy",
                 "initial_epsilon": 1.0,
