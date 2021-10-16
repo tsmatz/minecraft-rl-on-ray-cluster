@@ -53,31 +53,9 @@ class MalmoMazeEnv(gym.Env):
         self.action_space = AgentActionSpace()
         # Observation space definition
         self.observation_space = gym.spaces.Box(low=0, high=255, shape=self.shape, dtype=np.float32)
-        # Launch Minecraft client (HeadLess)
-        # command is : xvfb-run -a -e /dev/stdout -s '-screen 0 640x480x16' ./launchClient.sh -port 9000
-        launch_shell_file = str(pathlib.Path(__file__).parent.parent.absolute()) + "/shell_files/launchClient_headless.sh"
-        dev_null = open(os.devnull, "w")
-        self.proc = subprocess.Popen(
-            ["bash", launch_shell_file, str(self.malmo_port)],
-            stdout=dev_null,
-            preexec_fn=os.setsid)
-        ### # For Debug : Verbose Output
-        ### self.proc = subprocess.Popen(
-        ###     ["xvfb-run", "-a", "-e", "/dev/stdout", "-s", "-screen 0 640x480x16", "./launchClient.sh", "-port", str(self.malmo_port)])
-        ### # For Debug : Screen Output (Need Monitor)
-        ### self.proc = subprocess.Popen(
-        ###     ["./launchClient.sh", "-port", str(self.malmo_port)])
-        print("Waiting Minecraft instance to start ...")
-        while True:
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.settimeout(10)
-                    s.connect(("127.0.0.1", self.malmo_port))
-                    s.close()
-                print("Finished waiting for instance")
-                break
-            except (ConnectionError, socket.timeout):
-                time.sleep(5)
+        # Launch headless Minecraft
+        # (see _start_instance function)
+        self._start_instance()
         # Create AgentHost
         self.agent_host = MalmoPython.AgentHost()
         # Create MissionRecordSpec
@@ -223,8 +201,54 @@ class MalmoMazeEnv(gym.Env):
                 break;
         return frame, reward
 
+    def _start_instance(self):
+        #
+        # Launch headless Minecraft
+        #
+        # The following command is written in {package folder}/shell_files/launchClient_headless.sh
+        # xvfb-run -a -e /dev/stdout -s '-screen 0 640x480x16' ./launchClient.sh -port $1
+        #
+
+        # Check whether the port is already in use
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(10)
+                s.connect(("127.0.0.1", self.malmo_port))
+                s.close()
+            print("Malmo port {} is already in use. Try to connect existing Minecraft instance.".format(self.malmo_port))
+            return
+        except (ConnectionError, socket.timeout):
+            print("Start Minecraft instance")
+
+        # Launch Minecraft
+        launch_shell_file = str(pathlib.Path(__file__).parent.parent.absolute()) + "/shell_files/launchClient_headless.sh"
+        dev_null = open(os.devnull, "w")
+        self.proc = subprocess.Popen(
+            ["bash", launch_shell_file, str(self.malmo_port)],
+            stdout=dev_null,
+            preexec_fn=os.setsid)
+        ### # For Debug : Verbose Output
+        ### self.proc = subprocess.Popen(
+        ###     ["xvfb-run", "-a", "-e", "/dev/stdout", "-s", "-screen 0 640x480x16", "./launchClient.sh", "-port", str(self.malmo_port)])
+        ### # For Debug : Screen Output (Need Monitor)
+        ### self.proc = subprocess.Popen(
+        ###     ["./launchClient.sh", "-port", str(self.malmo_port)])
+
+        # Wait till instance runs
+        print("Waiting Minecraft instance to start ...")
+        while True:
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(10)
+                    s.connect(("127.0.0.1", self.malmo_port))
+                    s.close()
+                print("Finished waiting for instance")
+                break
+            except (ConnectionError, socket.timeout):
+                time.sleep(5)
+
     def _kill_instance(self):
         if self.proc is not None:
             os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
             self.proc = None
-            print("Terminated instance")
+            print("Terminated Minecraft instance")
