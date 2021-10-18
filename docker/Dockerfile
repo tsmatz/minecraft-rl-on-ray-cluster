@@ -44,8 +44,12 @@ RUN cd minecraft-rl-on-ray-cluster && \
     pip3 install Malmo_Maze_Sample/
 
 # These are needed for Ray autoscaler for Azure
-RUN pip3 install azure-cli-core==2.10.0 && \
-    pip3 install azure==4.0.0 && \
+RUN pip3 install azure-mgmt-compute==14.0.0 && \
+    pip3 install azure-mgmt-core==1.3.0 && \
+    pip3 install azure-mgmt-msi==1.0.0 && \
+    pip3 install azure-mgmt-network==10.2.0 && \
+    pip3 install azure-mgmt-resource==13.0.0 && \
+    pip3 install azure-cli-core==2.22.0 && \
     pip3 install knack
 
 EXPOSE 6379 8265
