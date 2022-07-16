@@ -148,7 +148,7 @@ sudo apt-get install -y  python3-pip
 sudo -H pip3 install --upgrade pip
 
 # Install Ray
-pip3 install gym lxml numpy pillow
+pip3 install gym==0.21.0 lxml numpy pillow
 pip3 install ray[default]==1.6.0 attrs==19.1.0
 
 # Install Azure CLI
