@@ -34,7 +34,7 @@ source ~/.bashrc
 
 # Install Ray with Tensorflow 2.x
 # (Install tensorflow-gpu when you run on GPU)
-pip3 install gym lxml numpy pillow
+pip3 install gym==0.21.0 lxml numpy pillow
 pip3 install tensorflow==2.4.1 ray[default]==1.6.0 ray[rllib]==1.6.0 ray[tune]==1.6.0 attrs==19.1.0 pandas
 
 # Install virtual monitor (xvfb) and desktop components
