@@ -134,7 +134,7 @@ When you have finished training, please run the following command on each machin
 ray stop
 ````
 
-See [here](https://github.com/tsmatz/azureml-examples/blob/master/azureml_minecraft_rl_ray_cluster.ipynb) for running this example (RL on Ray cluster) in Azure Machine Learning.
+See [here](https://github.com/tsmatz/azureml-examples/blob/master/azureml_minecraft_rl_ray_cluster/azureml_minecraft_rl_ray_cluster.ipynb) for running this example (RL on Ray cluster) in Azure Machine Learning.
 
 ## Run Training on Ray Autoscaler for Azure
 
