@@ -14,7 +14,7 @@ This example is the cluster version of [Malmo maze sample](https://github.com/ts
 
 ## Prerequisites
 
-In this example, I assume Ubuntu Server 18.04 in Microsoft Azure.<br>
+In this example, I assume Ubuntu Server 18.04 LTS in Microsoft Azure.<br>
 This example will require much resources for running workloads and I then recommend that you should use powerful machines. (Here I used Standard D3 v2 (4 vcpus, 14 GB memory) VM on Microsoft Azure.)
 
 > Note : This example is for getting started, but it's better to run on GPU in practical training. (Use ```tensorflow-gpu``` and change Dokerfile for running on GPU.)
@@ -45,6 +45,7 @@ sudo apt-get install -y lxde
 # /etc/init.d/xrdp start
 
 # Install and setup Malmo (Minecraft RL framework)
+sudo apt-get install -y git
 pip3 install --index-url https://test.pypi.org/simple/ malmo==0.36.0
 python3 -c "import malmo.minecraftbootstrap; malmo.minecraftbootstrap.download();"
 echo -e "export MALMO_XSD_PATH=$HOME/MalmoPlatform/Schemas" >> ~/.bashrc
