@@ -29,10 +29,10 @@ available_node_types:
         resources: {"CPU": 4}
         node_config:
             azure_arm_parameters:
-                vmSize: Standard_D3_v2
+                vmSize: Standard_DS3_v2
                 imagePublisher: microsoft-dsvm
-                imageOffer: ubuntu-1804
-                imageSku: "1804"
+                imageOffer: ubuntu-2004
+                imageSku: "2004"
                 imageVersion: latest
 
     ray.worker.default:
@@ -41,10 +41,10 @@ available_node_types:
         resources: {"CPU": 4}
         node_config:
             azure_arm_parameters:
-                vmSize: Standard_D3_v2
+                vmSize: Standard_DS3_v2
                 imagePublisher: microsoft-dsvm
-                imageOffer: ubuntu-1804
-                imageSku: "1804"
+                imageOffer: ubuntu-2004
+                imageSku: "2004"
                 imageVersion: latest
 
 head_node_type: ray.head.default
